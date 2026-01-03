@@ -1,0 +1,113 @@
+services:
+  # Ollama LLM Server
+  ollama:
+    image: ollama/ollama:latest
+    container_name: deepeval-ollama
+    ports:
+      - "${OLLAMA_HOST_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Remove GPU section if not available by using profile
+    profiles:
+      - gpu
+
+  # Ollama without GPU (CPU-only)
+  ollama-cpu:
+    image: ollama/ollama:latest
+    container_name: deepeval-ollama
+    ports:
+      - "${OLLAMA_HOST_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    profiles:
+      - cpu
+
+  # Model puller - downloads the model on first run
+  model-puller:
+    image: ollama/ollama:latest
+    container_name: deepeval-model-puller
+    depends_on:
+      ollama-cpu:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Pulling model ${OLLAMA_MODEL:-llama3.2}..."
+        ollama pull ${OLLAMA_MODEL:-llama3.2}
+        echo "Model ready!"
+    environment:
+      - OLLAMA_HOST=ollama:11434
+    profiles:
+      - setup
+
+  # DeepEval test runner
+  deepeval:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deepeval-tests
+    depends_on:
+      ollama-cpu:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama-cpu:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2}
+      - DEEPEVAL_TELEMETRY_OPT_OUT=true
+    volumes:
+      # Mount test results
+      - ./test_results:/app/test_results
+      # Mount test files for development
+      - ./test_local_llm.py:/app/test_local_llm.py
+      - ./test_local_simple.py:/app/test_local_simple.py
+      - ./examples:/app/examples
+    command: ["deepeval", "test", "run", "test_local_llm.py", "-v"]
+    profiles:
+      - test
+
+  # Interactive shell for development
+  deepeval-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deepeval-dev
+    depends_on:
+      ollama-cpu:
+        condition: service_healthy
+    environment:
+      - OLLAMA_BASE_URL=http://ollama-cpu:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2}
+      - DEEPEVAL_TELEMETRY_OPT_OUT=true
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+    command: ["/bin/bash"]
+    profiles:
+      - dev
+
+volumes:
+  ollama_data:
+    name: deepeval-ollama-data

@@ -4,10 +4,15 @@ This example shows how to use DeepEval with a local LLM server
 that exposes an OpenAI-compatible API endpoint.
 """
 
+import os
 from openai import OpenAI, AsyncOpenAI
 from pydantic import BaseModel
 from typing import Optional, Union
 import pytest
+
+# Configuration from environment variables
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2")
 from deepeval import assert_test, evaluate
 from deepeval.metrics import (
     GEval, 
@@ -24,13 +29,15 @@ from deepeval.dataset import EvaluationDataset, Golden
 
 class LocalLLM(DeepEvalBaseLLM):
     """Custom LLM class for connecting to a local model server"""
-    
+
     def __init__(
-        self, 
-        model_name: str = "llama3.2",
-        base_url: str = "http://10.0.0.125:11434/v1",
+        self,
+        model_name: str = None,
+        base_url: str = None,
         api_key: str = "not-needed"
     ):
+        model_name = model_name or OLLAMA_MODEL
+        base_url = base_url or f"{OLLAMA_BASE_URL}/v1"
         self.model_name = model_name
         self.base_url = base_url
         self.api_key = api_key
@@ -122,12 +129,8 @@ class LocalLLM(DeepEvalBaseLLM):
         return self.model_name
 
 
-# Initialize the local LLM
-local_llm = LocalLLM(
-    model_name="llama3.2",  # Adjust based on your local model
-    base_url="http://10.0.0.125:11434/v1",
-    api_key="not-needed"  # Many local servers don't require API keys
-)
+# Initialize the local LLM (uses environment variables or defaults)
+local_llm = LocalLLM()
 
 
 # Example 1: Simple test case with GEval metric
@@ -303,7 +306,8 @@ if __name__ == "__main__":
         print(f"✓ Local LLM is responsive: {response}")
     except Exception as e:
         print(f"✗ Error connecting to local LLM: {e}")
-        print("Make sure your local LLM server is running at http://10.0.0.125:11434/v1")
+        print(f"Make sure your local LLM server is running at {OLLAMA_BASE_URL}")
+        print("Set OLLAMA_BASE_URL environment variable to change the endpoint")
         exit(1)
     
     print("\n2. Running RAG evaluation...")

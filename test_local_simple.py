@@ -2,8 +2,13 @@
 Simple test to verify local LLM connection and basic evaluation
 """
 
+import os
 from openai import OpenAI
 from deepeval import evaluate
+
+# Configuration from environment variables
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2")
 from deepeval.metrics import AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
 from deepeval.models import DeepEvalBaseLLM
@@ -11,10 +16,10 @@ from deepeval.models import DeepEvalBaseLLM
 
 class LocalLLM(DeepEvalBaseLLM):
     """Minimal custom LLM class for local model"""
-    
-    def __init__(self, model_name="llama3.2", base_url="http://10.0.0.125:11434/v1"):
-        self.model_name = model_name
-        self.base_url = base_url
+
+    def __init__(self, model_name=None, base_url=None):
+        self.model_name = model_name or OLLAMA_MODEL
+        self.base_url = base_url or f"{OLLAMA_BASE_URL}/v1"
         
     def load_model(self):
         return self.model_name

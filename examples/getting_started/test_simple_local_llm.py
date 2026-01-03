@@ -2,8 +2,13 @@
 Simple local LLM integration with DeepEval - no parametrize issues
 """
 
+import os
 import requests
 import deepeval
+
+# Configuration from environment variables
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:3b")
 from deepeval import assert_test, evaluate
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from deepeval.metrics import GEval
@@ -12,10 +17,10 @@ from deepeval.models import DeepEvalBaseLLM
 
 class OllamaLLM(DeepEvalBaseLLM):
     """Simple Ollama LLM wrapper"""
-    
-    def __init__(self, model_name="qwen2.5-coder:3b", base_url="http://10.0.0.125:11434"):
-        self.model_name = model_name
-        self.base_url = base_url
+
+    def __init__(self, model_name=None, base_url=None):
+        self.model_name = model_name or OLLAMA_MODEL
+        self.base_url = base_url or OLLAMA_BASE_URL
         
     def load_model(self):
         return self.model_name
@@ -163,7 +168,8 @@ def test_multiple_questions():
 @deepeval.log_hyperparameters
 def hyperparameters():
     return {
-        "model": "qwen2.5-coder:3b",
+        "model": OLLAMA_MODEL,
+        "base_url": OLLAMA_BASE_URL,
         "temperature": 0.1,
         "application": "customer_support_v1"
     }

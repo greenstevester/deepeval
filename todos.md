@@ -1,6 +1,6 @@
 # Project Todo List
 
-Last updated: 2025-08-06
+Last updated: 2026-01-03
 
 ## Completed
 ### Session 1 - Initial Setup
@@ -30,18 +30,37 @@ All tasks have been successfully completed across both sessions!
 - Built advanced RAG pipeline example with document retrieval
 - Achieved 100% test pass rate with scores 0.8-0.9
 
+### Session 3 - Docker Support
+- [x] Make Ollama URL configurable via environment variables (Priority: high)
+- [x] Create Dockerfile for DeepEval test runner (Priority: high)
+- [x] Create docker-compose.yml with Ollama and test services (Priority: high)
+- [x] Create .env.example for configuration (Priority: medium)
+- [x] Test local and Docker execution (Priority: high)
+
+### Session 3 Achievements:
+- Updated all local LLM test files to use environment variables
+- Created multi-stage Dockerfile for efficient test runner image
+- Docker Compose setup with CPU and GPU profiles
+- Convenience script for Docker operations
+
 ## Key Files Created
-1. **Working Examples:**
+1. **Docker Configuration:**
+   - `Dockerfile` - Multi-stage build for DeepEval test runner
+   - `docker-compose.yml` - Ollama + DeepEval services with profiles
+   - `.env.example` - Environment configuration template
+   - `scripts/docker-run.sh` - Convenience script for Docker operations
+
+2. **Working Examples:**
    - `test_working_local_llm.py` - Production-ready with custom metrics
    - `test_example_local_llm.py` - Full customer support chatbot
    - `test_rag_application.py` - Advanced RAG pipeline
    - `test_simple_local_llm.py` - Minimal example
 
-2. **Utilities:**
+3. **Utilities:**
    - `test_connection.py` - Server connectivity testing
    - `test_ollama_custom_metric.py` - Custom metric implementations
 
-3. **Documentation:**
+4. **Documentation:**
    - `CLAUDE.md` - Comprehensive development guide
    - This todo list tracking progress
 
@@ -49,4 +68,5 @@ All tasks have been successfully completed across both sessions!
 ✅ Complete local LLM integration with DeepEval
 ✅ Real applications replacing mock responses
 ✅ 100% test success rate
-✅ Committed to branch `test/local-llm` (commit: 90aee438)
+✅ Docker support for local and containerized execution
+✅ Environment variable configuration for portability
