@@ -2,11 +2,15 @@
 Test connection to local LLM server
 """
 
+import os
 import requests
 import json
 
+# Configuration from environment variables
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+
 # Test basic connectivity
-base_url = "http://10.0.0.125:11434"
+base_url = OLLAMA_BASE_URL
 
 print("Testing connection to local LLM server...")
 print(f"Base URL: {base_url}")
@@ -64,4 +68,4 @@ for endpoint in endpoints:
 print("\nIf you're using Ollama, make sure to:")
 print("  1. Start Ollama: ollama serve")
 print("  2. Pull a model: ollama pull llama3.2")
-print("  3. Verify it's running: curl http://10.0.0.125:11434/api/tags")
+print(f"  3. Verify it's running: curl {OLLAMA_BASE_URL}/api/tags")

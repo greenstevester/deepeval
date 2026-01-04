@@ -2,8 +2,13 @@
 End-to-end evaluation using Ollama locally hosted LLM
 """
 
+import os
 import requests
 import json
+
+# Configuration from environment variables
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:7b")
 from typing import Optional, Union
 from pydantic import BaseModel
 from deepeval import evaluate, assert_test
@@ -21,14 +26,10 @@ import pytest
 
 class OllamaLLM(DeepEvalBaseLLM):
     """Custom LLM class for Ollama"""
-    
-    def __init__(
-        self, 
-        model_name: str = "qwen2.5-coder:3b",  # Using one of your available models
-        base_url: str = "http://10.0.0.125:11434"
-    ):
-        self.model_name = model_name
-        self.base_url = base_url
+
+    def __init__(self, model_name: str = None, base_url: str = None):
+        self.model_name = model_name or OLLAMA_MODEL
+        self.base_url = base_url or OLLAMA_BASE_URL
         
     def load_model(self):
         return self.model_name
@@ -72,11 +73,8 @@ class OllamaLLM(DeepEvalBaseLLM):
         return self.model_name
 
 
-# Initialize Ollama LLM with your available model
-ollama_llm = OllamaLLM(
-    model_name="qwen2.5-coder:3b",  # You can change to any available model
-    base_url="http://10.0.0.125:11434"
-)
+# Initialize Ollama LLM (uses environment variables)
+ollama_llm = OllamaLLM()
 
 
 # Test 1: Simple connection test
@@ -209,7 +207,7 @@ if __name__ == "__main__":
     
     # Test connection first
     if not test_ollama_connection():
-        print("\nPlease ensure Ollama is running at http://10.0.0.125:11434")
+        print(f"\nPlease ensure Ollama is running at {OLLAMA_BASE_URL}")
         exit(1)
     
     # Run simple evaluation
